@@ -6,59 +6,44 @@
 /*   By: pbuet <pbuet@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 09:39:02 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/13 15:54:38 by pbuet            ###   ########.fr       */
+/*   Updated: 2024/12/16 15:28:03 by pbuet            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
-char *ft_realloc(char *s, int size, char c)
-{
-	char	*s2;
-	int		i;
-
-	i = 0;
-	s2 = malloc(sizeof(char) * size + 1);
-	if (!s2)
-		return (NULL);
-	if (!s)
-	{
-		s2[0] = c;
-		return (s2);
-	}
-	while (i < size)
-	{
-		s2[i] = s[i];
-		i ++;
-	}
-	free(s);
-	s2[i] = c;
-	return (s2);
-}
-
 void	build_message(char c)
 {
 	static char	*message = NULL;
 	static int	i = 0;
 
-	message = ft_realloc(message, i, c);
-	if (!message)
-		return;
-	if (c == '\0')
+	if (message == NULL)
 	{
-		ft_printf("%s\n", message);
-		free (message);
-		message = NULL;
-		i = -1;
+		message = malloc(9999);
+		if (!message)
+			exit(1);
+		ft_memset(message, 0, 9999);
 	}
+	message[i] = c;
 	i ++;
+	if (i == 4095 || c == '\0')
+	{
+		ft_printf("%s", message);
+		free(message);
+		message = NULL;
+		i = 0;
+		if (c == '\0')
+			ft_printf("\n");
+	}
 }
 void	recep_message(int sig)
 {
-	static int				i;
-	static unsigned char	c;
+	static int				i = 0;
+	static unsigned char	c = 0;
 
 	if (sig == SIGUSR1)
 		c |= (1 << i);
+	else
+		c &= ~(1 << i);
 	i ++;
 	if (i == 8)
 	{
@@ -67,17 +52,25 @@ void	recep_message(int sig)
 		c = 0;
 	}
 }
-int	main()
+int main()
 {
-	struct sigaction	sa;
+    struct sigaction sa;
+    
+    sa.sa_handler = recep_message;
+    sa.sa_flags = SA_RESTART;
+    sigemptyset(&sa.sa_mask);
 
-    sa.sa_flags = 0;
-	sa.sa_handler = recep_message;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGUSR1, &sa, NULL);
-	sigaction(SIGUSR2, &sa, NULL);
-	ft_printf("PID : %d\n", getpid());
-	while (1)
-		pause();
-	return (0);
+    if (sigaction(SIGUSR1, &sa, NULL) == -1 || 
+        sigaction(SIGUSR2, &sa, NULL) == -1)
+    {
+        perror("Erreur sigaction");
+        exit(1);
+    }
+
+    ft_printf("PID : %d\n", getpid());
+
+    while (1)
+        pause();
+
+    return 0;
 }
