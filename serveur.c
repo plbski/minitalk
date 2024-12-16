@@ -6,71 +6,72 @@
 /*   By: pbuet <pbuet@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 09:39:02 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/16 15:28:03 by pbuet            ###   ########.fr       */
+/*   Updated: 2024/12/16 17:23:55 by pbuet            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
-void	build_message(char c)
-{
-	static char	*message = NULL;
-	static int	i = 0;
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
 
-	if (message == NULL)
-	{
-		message = malloc(9999);
-		if (!message)
-			exit(1);
-		ft_memset(message, 0, 9999);
-	}
-	message[i] = c;
-	i ++;
-	if (i == 4095 || c == '\0')
-	{
-		ft_printf("%s", message);
-		free(message);
-		message = NULL;
-		i = 0;
-		if (c == '\0')
-			ft_printf("\n");
-	}
-}
-void	recep_message(int sig)
-{
-	static int				i = 0;
-	static unsigned char	c = 0;
+// Une seule variable globale pour stocker toutes les informations
+typedef struct {
+    char buffer[2048];
+    int index;
+    unsigned char current_char;
+    int bit_count;
+    int message_complete;
+} MessageContext;
 
-	if (sig == SIGUSR1)
-		c |= (1 << i);
-	else
-		c &= ~(1 << i);
-	i ++;
-	if (i == 8)
-	{
-		build_message(c);
-		i = 0;
-		c = 0;
-	}
+MessageContext g_context = {0};
+
+void reset_buffer()
+{
+    ft_memset(g_context.buffer, 0, g_context.index + 1);
+    g_context.index = 0;
+    g_context.message_complete = 0;
 }
+
+void handle_message_reception(int sig)
+{
+    if (sig == SIGUSR1)
+        g_context.current_char |= (1 << g_context.bit_count);
+    else
+        g_context.current_char &= ~(1 << g_context.bit_count);
+    g_context.bit_count++;
+    if (g_context.bit_count == 8)
+    {
+        g_context.buffer[g_context.index++] = g_context.current_char;
+        if (g_context.current_char == '\0' || g_context.index >= 2047)
+        {
+			g_context.buffer[g_context.index] = '\0';
+			ft_printf("%s", g_context.buffer);
+			reset_buffer();
+			if (g_context.current_char == '\0')
+				ft_printf("\n");
+        }
+		g_context.bit_count = 0;
+		g_context.current_char = 0;
+    }
+}
+
 int main()
 {
     struct sigaction sa;
-    
-    sa.sa_handler = recep_message;
+
+    sa.sa_handler = handle_message_reception;
     sa.sa_flags = SA_RESTART;
     sigemptyset(&sa.sa_mask);
 
     if (sigaction(SIGUSR1, &sa, NULL) == -1 || 
         sigaction(SIGUSR2, &sa, NULL) == -1)
     {
-        perror("Erreur sigaction");
+        write(2, "Erreur sigaction\n", 16);
         exit(1);
     }
-
     ft_printf("PID : %d\n", getpid());
-
     while (1)
         pause();
-
     return 0;
 }
