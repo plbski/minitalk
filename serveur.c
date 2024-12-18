@@ -6,7 +6,7 @@
 /*   By: pbuet <pbuet@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 09:39:02 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/18 14:43:03 by pbuet            ###   ########.fr       */
+/*   Updated: 2024/12/18 18:05:35 by pbuet            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ MessageContext g_context = {0};
 
 void reset_buffer()
 {
-    ft_memset(g_context.buffer, 0, g_context.index + 1);
+    ft_memset(g_context.buffer, 0, 2047);
     g_context.index = 0;
     g_context.message_complete = 0;
 }
@@ -43,12 +43,12 @@ void handle_message_reception(int sig)
     if (g_context.bit_count == 8)
     {
         g_context.buffer[g_context.index++] = g_context.current_char;
-        if (g_context.current_char == '\0' || g_context.index >= 2047)
+        if (g_context.current_char == '\0' || g_context.current_char == 0x04)
         {
 			g_context.buffer[g_context.index] = '\0';
 			ft_printf("%s", g_context.buffer);
 			reset_buffer();
-			if (g_context.current_char == '\0')
+			if (g_context.current_char == 0x04)
 				ft_printf("\n");
         }
 		g_context.bit_count = 0;

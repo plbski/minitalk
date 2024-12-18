@@ -11,10 +11,10 @@ CC = gcc
 OBJET_C = $(SRC_CLIENT:.c=.o)
 OBJET_S = $(SRC_SERV:.c=.o)
 LIBFT_A = libft.a
-LIBFT_DIR = libft/
+LIBFT_DIR = li/
 LIBFT = $(addprefix $(LIBFT_DIR), $(LIBFT_A))
 PRINTF_A = libftprintf.a
-PRINTF_DIR = libft/printf/
+PRINTF_DIR = li/printfnull/
 PRINTF = $(addprefix $(PRINTF_DIR), $(PRINTF_A))
 
 all: $(NAME_1) $(NAME_2)

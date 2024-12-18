@@ -6,7 +6,7 @@
 /*   By: pbuet <pbuet@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 10:09:21 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/18 14:38:17 by pbuet            ###   ########.fr       */
+/*   Updated: 2024/12/18 18:05:11 by pbuet            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ void send_signal(unsigned char message, int pid)
             kill(pid, SIGUSR1);
         else
             kill(pid, SIGUSR2);
-		usleep(300);
+		usleep(50);
         i++;
     }
 }
@@ -36,9 +36,16 @@ void send_message(unsigned char *message, int pid)
     while (message[i])
     {
         send_signal(message[i], pid);
-        i++;
+		if (i % 2047 == 0)
+		{
+			send_signal('\0', pid);
+			usleep(400);
+		}
+		i ++;
     }
-    send_signal('\0', pid);
+	send_signal('\0', pid);
+    send_signal(0x04, pid);
+	usleep(400);
 }
 
 int main(int argc, char **argv)
