@@ -6,7 +6,7 @@
 /*   By: pbuet <pbuet@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 10:09:21 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/16 17:17:39 by pbuet            ###   ########.fr       */
+/*   Updated: 2024/12/18 14:38:17 by pbuet            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ void send_signal(unsigned char message, int pid)
             kill(pid, SIGUSR1);
         else
             kill(pid, SIGUSR2);
-		usleep(50);
+		usleep(300);
         i++;
     }
 }
