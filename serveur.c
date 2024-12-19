@@ -6,7 +6,7 @@
 /*   By: plbuet <plbuet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 09:39:02 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/19 11:56:07 by plbuet           ###   ########.fr       */
+/*   Updated: 2024/12/19 17:10:32 by plbuet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,6 @@
 #include <stdlib.h>
 
 // Une seule variable globale pour stocker toutes les informations
-typedef struct {
-    char buffer[2048];
-    int index;
-    unsigned char current_char;
-    int bit_count;
-    int message_complete;
-    volatile sig_atomic_t processing;
-} MessageContext;
-
 MessageContext g_context = {0};
 
 void reset_buffer()
@@ -35,11 +26,10 @@ void reset_buffer()
     g_context.message_complete = 0;
 }
 
-void handle_message_reception(int sig)
+void handle_message_reception(int sig, siginfo_t *info, void *context)
 {
-    if (g_context.processing)
-        return;
-    g_context.processing = 1;
+    (void)context;
+    g_context.client_pid = info->si_pid;
     if (sig == SIGUSR1)
         g_context.current_char |= (1 << g_context.bit_count);
     else
@@ -54,19 +44,21 @@ void handle_message_reception(int sig)
             ft_printf("%s", g_context.buffer);
             reset_buffer();
             if (g_context.current_char == '\0')
+            {
                 ft_printf("\n");
+                kill(g_context.client_pid, SIGUSR1);
+            }
         }
         g_context.bit_count = 0;
         g_context.current_char = 0;
     }
-    g_context.processing = 0;
 }
 
 int main()
 {
     struct sigaction sa;
-    sa.sa_handler = handle_message_reception;
-    sa.sa_flags = SA_RESTART;
+    sa.sa_sigaction = handle_message_reception;
+    sa.sa_flags = SA_SIGINFO | SA_RESTART;
     sigemptyset(&sa.sa_mask);
     
     // Bloquer tous les signaux pendant le traitement
