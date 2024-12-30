@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   serveur.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: plbuet <plbuet@student.42.fr>              +#+  +:+       +#+        */
+/*   By: pbuet <marvin@42lausanne.ch>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 09:39:02 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/19 17:10:32 by plbuet           ###   ########.fr       */
+/*   Updated: 2024/12/30 13:55:33 by pbuet            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ MessageContext g_context = {0};
 
 void reset_buffer()
 {
-    ft_memset(g_context.buffer, 0, 2047);
+    ft_memset(g_context.buffer, 0, g_context.index);
     g_context.index = 0;
     g_context.message_complete = 0;
 }
@@ -41,7 +41,7 @@ void handle_message_reception(int sig, siginfo_t *info, void *context)
         if (g_context.current_char == '\0' || g_context.index >=2046)
         {
             g_context.buffer[g_context.index] = '\0';
-            ft_printf("%s", g_context.buffer);
+            write(1, g_context.buffer, g_context.index);
             reset_buffer();
             if (g_context.current_char == '\0')
             {

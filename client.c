@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: plbuet <plbuet@student.42.fr>              +#+  +:+       +#+        */
+/*   By: pbuet <marvin@42lausanne.ch>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 10:09:21 by pbuet             #+#    #+#             */
-/*   Updated: 2024/12/19 17:16:17 by plbuet           ###   ########.fr       */
+/*   Updated: 2024/12/30 13:52:57 by pbuet            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,10 @@ void send_message(unsigned char *message, int pid)
 
     i = 0;
 	ack = 0;
-    usleep(3000);
     while (message[i])
     {
         if (i > 0 && i % 2046 == 0)
-            usleep(1000);
+            usleep(3000);
         send_signal(message[i], pid);
 		i ++;
     }
